@@ -1,0 +1,12 @@
+{
+  "name": "nodejstorndiscordbotuv-1",
+  "version": "1.0.0",
+  "description": "A bot for UV",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
