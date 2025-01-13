@@ -57,7 +57,7 @@ module.exports = {
 
         embed.addFields(feilds)
 
-        interaction.reply({embeds: [embed]})
+        await interaction.reply({embeds: [embed]})
 	},
 };
 
