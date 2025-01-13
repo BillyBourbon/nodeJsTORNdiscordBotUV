@@ -45,8 +45,6 @@ module.exports = {
 	async execute(interaction) {
     let id = interaction.options.getInteger('id');
     let embed = await spy(id)
-    console.log(embed)
-    console.log(embed.data.fields)
     await interaction.reply({embeds:[embed]})
 	},
 };
