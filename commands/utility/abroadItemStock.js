@@ -2,7 +2,6 @@ const axios = require("axios")
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 // 	Path stuff to get configs
 const path = require('path');
-const { error, count } = require('console');
 const basePath = path.join(__dirname,"..","..")
 
 //  Configs
