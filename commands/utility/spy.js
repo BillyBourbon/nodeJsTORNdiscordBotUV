@@ -2,7 +2,6 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const axios = require("axios")
 // 	Path stuff to get configs
 const path = require('path');
-const { error } = require('console');
 const basePath = path.join(__dirname,"..","..")
 
 //  Configs
@@ -13,10 +12,10 @@ async function spy(id){
   call = call.data.spy
   if(call.status == false){
     let embed = new EmbedBuilder()
-    .setColor('#0099ff')
-    .setTitle('Player Stat Spy')
-    .addFields({"name":`Unknown Spy`, "value": `[TS-Spy] | ${call.message}`,"inline":true})
-    .setFooter('Made By Bilbosaggings [2323763]')
+      .setColor('#0099ff')
+      .setTitle('Player Stat Spy')
+      .addFields({"name":`Unknown Spy`, "value": `[TS-Spy] | ${call.message}`,"inline":true})
+      .setFooter('Made By Bilbosaggings [2323763]')
     return embed
     }
   else{
@@ -32,7 +31,7 @@ async function spy(id){
     let embed = new EmbedBuilder()
     .setColor('#0099ff')
     .setTitle('Player Stat Spy')
-    .addFields({"name":`${name} [${id}]`, "value": `[TS-Spy]\nSpy Age: ${time},\nLevel: ${level}\nFaction: ${faction}\nStrength: ${str},\nDefense: ${def},\nSpeed: ${spd},\nDexterity: ${dex},\nTotal: ${total}`, "inline":true})
+    .addFields({"name":`${name} [${id}]`, "value": `[TS-Spy]\nSpy Age: ${time},\nLevel: ${level}\nFaction: ${faction}\nStrength: ${str}\nDefense: ${def}\nSpeed: ${spd}\nDexterity: ${dex}\nTotal: ${total}`, "inline":true})
     .setFooter({"text":'Made By Bilbosaggings [2323763]'})
     return embed
     }
@@ -46,6 +45,8 @@ module.exports = {
 	async execute(interaction) {
     let id = interaction.options.getInteger('id');
     let embed = await spy(id)
-    return interaction.reply({embeds:[embed]})
+    console.log(embed)
+    console.log(embed.data.fields)
+    await interaction.reply({embeds:[embed]})
 	},
 };

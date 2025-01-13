@@ -7,6 +7,7 @@ const basePath = path.join(__dirname,"..","..")
 
 //  Configs
 const { apikey } = require(path.join(basePath, "config.json"))
+const { formatterCurrency, formatterQuantity } = require(path.join(basePath, "helpers.js"))
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -98,19 +99,4 @@ async function getTornItems(){
     const call = await axios.get(`https://api.torn.com/torn/?selections=items&key=${apikey}`)
     const { data: {items} } = call
     return items
-}
-
-const formatterCurrency = (n) =>{
-    return Intl.NumberFormat("en-US", {
-        minimumFractionDigits:0,
-        maximumFractionDigits:0,
-        style:"currency",
-        currency:"USD"
-    }).format(n)
-}
-const formatterQuantity = (n) => {
-    return Intl.NumberFormat("en-US", {
-        minimumFractionDigits : 0,
-        maximumFractionDigits : 0,
-    }).format(n)
 }

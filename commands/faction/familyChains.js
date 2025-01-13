@@ -7,6 +7,7 @@ const basePath = path.join(__dirname,"..","..")
 
 //  Configs
 const { apikey } = require(path.join(basePath, "config.json"))
+const { formatterCurrency, formatterQuantity } = require(path.join(basePath, "helpers.js"))
 
 async function call(id) {
   let call = await axios.get(`https://api.torn.com/faction/${id}?selections=chain,basic&key=${apikey}`)
@@ -20,7 +21,7 @@ module.exports = {
 	async execute(interaction) {
         let ids = [45151,10913,14820, 38547, 49069]
         let embed = new EmbedBuilder()
-            .setColor('#0099ff')
+            .setColor('Purple')
             .setTitle("Unbroken's current chains")
         for(i in ids){
             let data = await call(ids[i])
@@ -32,7 +33,7 @@ module.exports = {
             let cooldown = data.cooldown
             let message = ""
             let x = 0
-            message+=`Current Length: ${current}`
+            message+=`Current Length: ${formatterQuantity(current)}`
             if(cooldown == 0 && timeout == 0){
                 message+="\nNot Active"
                 x+=1
