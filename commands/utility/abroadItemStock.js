@@ -12,10 +12,10 @@ module.exports = {
 		.setDescription('Shows the latest stock abroad')
     .addStringOption(option=>option.setName("country").setDescription("Enter the country you want stock data on").setRequired(true)),
 	async execute(interaction) {
+        const country = interaction.options.getString('country')
         let embed = defaultEmbed(`Items Abroad ${country}`)
         try{
 
-            const country = interaction.options.getString('country')
             const countryId = getCountryId(country)
             const data = (await call())[countryId]
 
