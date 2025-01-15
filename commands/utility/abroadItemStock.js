@@ -12,6 +12,7 @@ module.exports = {
 		.setDescription('Shows the latest stock abroad')
     .addStringOption(option=>option.setName("country").setDescription("Enter the country you want stock data on").setRequired(true)),
 	async execute(interaction) {
+        let embed = defaultEmbed(`Items Abroad ${country}`)
         try{
 
             const country = interaction.options.getString('country')
@@ -24,7 +25,6 @@ module.exports = {
             const feilds = []
             const outOfStock = []
 
-            const embed = defaultEmbed(`Items Abroad ${country}`)
             embed.setDescription(`Last Updated At: ${updateDate}`)
 
             stocks.forEach(item=>{
@@ -41,10 +41,10 @@ module.exports = {
 
             embed.addFields(feilds)
 
-            interaction.reply({embeds: [embed]})
         } catch(e){
-            interaction.reply({embeds:[defaultErrorEmbed("Unable To Fetch Foreign Items")]})
+            embed = defaultErrorEmbed("Unable To Fetch Foreign Items")
         }
+        await interaction.reply({embeds: [embed]})
 	},
 };
 
