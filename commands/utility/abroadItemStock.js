@@ -1,13 +1,6 @@
 const axios = require("axios")
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
-// 	Path stuff to get configs
-const path = require('path');
-const { getApiKey, defaultEmbed, feildTemplate } = require("../../helpers");
-const basePath = path.join(__dirname,"..","..")
-
-//  Configs
-const { apikey } = require(path.join(basePath, "config.json"))
-const { formatterCurrency, formatterQuantity } = require(path.join(basePath, "helpers.js"))
+const { SlashCommandBuilder } = require('discord.js');
+const { defaultEmbed, feildTemplate, formatterCurrency, formatterQuantity, defaultErrorEmbed } = require("../../helpers");
 
 async function call() {
   let call = await axios.get("https://yata.yt/api/v1/travel/export/")
@@ -19,35 +12,39 @@ module.exports = {
 		.setDescription('Shows the latest stock abroad')
     .addStringOption(option=>option.setName("country").setDescription("Enter the country you want stock data on").setRequired(true)),
 	async execute(interaction) {
-        const country = interaction.options.getString('country')
-        const countryId = getCountryId(country)
-        
-        const data = (await call())[countryId]
+        try{
 
-        const { update, stocks } = data
-        const updateDate =  (new Date(update*1000)).toUTCString()
+            const country = interaction.options.getString('country')
+            const countryId = getCountryId(country)
+            const data = (await call())[countryId]
 
-        const feilds = []
-        const outOfStock = []
+            const { update, stocks } = data
+            const updateDate =  (new Date(update*1000)).toUTCString()
 
-        const embed = defaultEmbed(`Items Abroad ${country}`)
-        embed.setDescription(`Last Updated At: ${updateDate}`)
+            const feilds = []
+            const outOfStock = []
 
-        stocks.forEach(item=>{
-            const { id, name, quantity, cost } = item
-            if(quantity == 0) outOfStock.push(`${name} [${id}]`)
-            else {
-                feilds.push(feildTemplate(`${name} [${id}]`,`Quantity: ${formatterQuantity(quantity)} | Price: ${formatterCurrency(cost)}`))
+            const embed = defaultEmbed(`Items Abroad ${country}`)
+            embed.setDescription(`Last Updated At: ${updateDate}`)
+
+            stocks.forEach(item=>{
+                const { id, name, quantity, cost } = item
+                if(quantity == 0) outOfStock.push(`${name} [${id}]`)
+                else {
+                    feilds.push(feildTemplate(`${name} [${id}]`,`Quantity: ${formatterQuantity(quantity)} | Price: ${formatterCurrency(cost)}`))
+                }
+            })
+
+            if(outOfStock.length > 0) {
+                feilds.push(feildTemplate(`Out Of Stock Items`,`${outOfStock.join(", ")}`))
             }
-        })
 
-        if(outOfStock.length > 0) {
-            feilds.push(feildTemplate(`Out Of Stock Items`,`${outOfStock.join(", ")}`))
+            embed.addFields(feilds)
+
+            await interaction.reply({embeds: [embed]})
+        } catch(e){
+            await interaction.reply({embeds:[defaultErrorEmbed("Unable To Fetch Foreign Items")]})
         }
-
-        embed.addFields(feilds)
-
-        await interaction.reply({embeds: [embed]})
 	},
 };
 

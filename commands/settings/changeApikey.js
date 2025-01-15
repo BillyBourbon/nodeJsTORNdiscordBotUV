@@ -23,6 +23,6 @@ module.exports = {
         if(updateStatus.status == false) return await interaction.reply({embeds:[defaultErrorEmbed(updateStatus.message)], flags:MessageFlags.Ephemeral})
 
         
-		await interaction.reply({content:"Changes APIKEY", flags: MessageFlags.Ephemeral});
+		await interaction.reply({content:"Changed APIKEY", flags: MessageFlags.Ephemeral});
 	},
 };
