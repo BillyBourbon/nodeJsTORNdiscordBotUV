@@ -56,5 +56,5 @@ function getCountryId(country){
     }else{
         id = country.substring(0,3)
     }
-    return id.toLowerCase()
+    return (id.toLowerCase())
 }
