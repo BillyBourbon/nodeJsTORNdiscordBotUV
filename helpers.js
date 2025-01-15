@@ -60,8 +60,8 @@ const getApiKey = async(guildId) => {
     const GetGuildStatus = await getGuild(guildId)
     if(!GetGuildStatus.status) return status
     const key = GetGuildStatus.response[0].config.bot.apikey
-    if(key == null || key == undefined) {
-        status.message = "No Apikey Set"
+    if(key == null || key == undefined || key.length !== 16) {
+        status.message = "No Apikey Set/Invalid Key"
         return status
     }
     status.status = true
