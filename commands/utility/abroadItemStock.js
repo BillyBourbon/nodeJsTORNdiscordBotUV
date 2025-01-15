@@ -41,9 +41,9 @@ module.exports = {
 
             embed.addFields(feilds)
 
-            await interaction.reply({embeds: [embed]})
+            interaction.reply({embeds: [embed]})
         } catch(e){
-            await interaction.reply({embeds:[defaultErrorEmbed("Unable To Fetch Foreign Items")]})
+            interaction.reply({embeds:[defaultErrorEmbed("Unable To Fetch Foreign Items")]})
         }
 	},
 };
