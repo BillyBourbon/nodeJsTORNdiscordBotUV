@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, MessageFlags } = require('discord.js');
 const { token } = require('./config.json');
+const { dbClient } = require('./helpers');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds,GatewayIntentBits.GuildMembers] });
 
@@ -50,5 +51,13 @@ client.on(Events.InteractionCreate, async interaction => {
 		}
 	}
 });
-
-client.login(token);
+// client.login(token);
+try{
+	( async()=>await dbClient.connect())()
+	client.login(token);
+} catch(e){
+	console.log("Error logging in client")
+	console.log(e)
+} finally{
+	( async()=>await dbClient.close())()
+}

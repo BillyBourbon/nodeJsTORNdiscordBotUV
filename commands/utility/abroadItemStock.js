@@ -2,6 +2,7 @@ const axios = require("axios")
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 // 	Path stuff to get configs
 const path = require('path');
+const { getApiKey, defaultEmbed, feildTemplate } = require("../../helpers");
 const basePath = path.join(__dirname,"..","..")
 
 //  Configs
@@ -20,7 +21,7 @@ module.exports = {
 	async execute(interaction) {
         const country = interaction.options.getString('country')
         const countryId = getCountryId(country)
-
+        
         const data = (await call())[countryId]
 
         const { update, stocks } = data
@@ -29,29 +30,19 @@ module.exports = {
         const feilds = []
         const outOfStock = []
 
-        const embed = new EmbedBuilder()
-            .setTitle(`Items Abroad ${country}`)
-            .setDescription(`Last Updated At: ${updateDate}`)
-            .setColor("Purple")
+        const embed = defaultEmbed(`Items Abroad ${country}`)
+        embed.setDescription(`Last Updated At: ${updateDate}`)
 
-            stocks.forEach(item=>{
+        stocks.forEach(item=>{
             const { id, name, quantity, cost } = item
             if(quantity == 0) outOfStock.push(`${name} [${id}]`)
             else {
-                const feild = {
-                    "name" : `${name} [${id}]`,
-                    "value" : `Quantity: ${formatterQuantity(quantity)} | Price: ${formatterCurrency(cost)}`,
-                    "inline" : true
-                }
-                feilds.push(feild)
+                feilds.push(feildTemplate(`${name} [${id}]`,`Quantity: ${formatterQuantity(quantity)} | Price: ${formatterCurrency(cost)}`))
             }
         })
 
         if(outOfStock.length > 0) {
-            feilds.push({
-                "name" : `Out Of Stock Items`,
-                "value" : `${outOfStock.join(", ")}`, 
-            })
+            feilds.push(feildTemplate(`Out Of Stock Items`,`${outOfStock.join(", ")}`))
         }
 
         embed.addFields(feilds)
@@ -62,7 +53,6 @@ module.exports = {
 
 function getCountryId(country){
     let id = ""
-    console.log(country)
     if(country.length == 3) return country
     if(country.split(" ").length == 3){
         country.split(" ").forEach(w=>id+=w[0])

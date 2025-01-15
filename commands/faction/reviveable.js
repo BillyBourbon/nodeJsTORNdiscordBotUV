@@ -3,14 +3,8 @@ const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 //	For API Calls to TORN 
 const axios = require('axios')
+const { getApiKey, defaultEmbed, defaultErrorEmbed, formatterQuantity, feildTemplate } = require('../../helpers');
 
-// 	Path stuff to get configs
-const path = require('path')
-const basePath = path.join(__dirname,"..","..")
-
-//  Configs
-const guildConfigs = require(path.join(basePath, "guildConfigs.json"))
-const { apikey } = require(path.join(basePath, "config.json"))
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -23,6 +17,10 @@ module.exports = {
                 .setRequired(true)
         ),
 	async execute(interaction) {
+        const apikeyStatus = await getApiKey(interaction.guild.id)
+        if(!apikeyStatus.status) return interaction.reply({embeds: [defaultErrorEmbed(apikeyStatus.message)]})
+        const apikey = apikeyStatus.response
+
         const factionId = interaction.options.getInteger("faction_id")
         const call = await axios.get(`https://api.torn.com/v2/faction/${factionId}/members?key=${apikey}`)
         
@@ -34,16 +32,12 @@ module.exports = {
             
             if(!is_revivable) return
 
-            const field = {
-                "name" : `${name} [${id}] (${status} | ${relative})`,
-                "value" : `Revive Setting: ${revive_setting}`
-            }
+            const field = feildTemplate(`${name} [${id}] (${status} | ${relative})`,`Revive Setting: ${revive_setting}`)
             fieldsRevivable.push(field)
         })
         const embeds = []
         while(fieldsRevivable.length > 0){    
-            const embed = new EmbedBuilder()
-            embed.setTitle("Faction Revivables")
+            const embed = defaultEmbed("Faction Revivables")
             embed.addFields(fieldsRevivable.splice(0,25))
             embeds.push(embed)
         }

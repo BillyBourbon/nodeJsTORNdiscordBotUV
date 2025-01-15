@@ -1,42 +1,62 @@
-// const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 
-// //	For API Calls to TORN 
-// const axios = require('axios')
+//	For API Calls to TORN 
+const axios = require('axios')
 
-// // 	Path stuff to get configs
-// const path = require('path')
-// const basePath = path.join(__dirname,"..","..")
-// const guildConfigs = require(path.join(basePath, "guildConfigs.json"))
-// const { apikey } = require(path.join(basePath, "config.json"))
+const { getGuild, getApiKey,defaultEmbed, defaultErrorEmbed} = require('../../helpers');
 
-// module.exports = {
-// 	data: new SlashCommandBuilder()
-// 		.setName('verify')
-// 		.setDescription('verifys yourself or another person'),
-// 	async execute(interaction,client) {
-// 		const { member } = interaction;
-//         const userId =  member.user.id;
-// 		const memberRoles = member.roles
-        
-// 		const guildId = interaction.guildId
-// 		const guild = await client.guilds.fetch(guildId)
-// 		const { roles } = guild
+module.exports = {
+	data: new SlashCommandBuilder()
+		.setName('verify')
+		.setDescription('verifys yourself or another person')
+        .addUserOption(option=>option.setName("user").setDescription("User To Verify")),
+	async execute(interaction,client) {
+        const user = interaction.options.getUser("user") || interaction.member.user
+        const { username } = user
+        const userId = user.id
+		const guildId = interaction.guild.id
+        const status = await getGuild(guildId)
 
-// 		const guildRoles = await roles.fetch()
-// 		const guildRolesArray = []
-// 		guildRoles.forEach(role=>{
-// 			guildRolesArray.push( [ role.name, role.id ] )
-// 		})
+        const embed = defaultEmbed("Verify User")
+        const feilds = []
 
-// 		const call = await axios.get(`https://api.torn.com/user/${userId}?selections=profile&key=${apikey}`)
-// 		const {data} = call
-// 		const {name, faction : {faction_name}} = data
-// 		console.log(faction_name)
-// 		const roleToGive = guildRolesArray.find(a=>a[0].trim() === faction_name)
+        if(status.status==false) return interaction.reply({embeds:[defaultErrorEmbed(status.message)]})
 
-// 		console.log(roleToGive)
-// 		if(!memberRoles.includes(roleToGive[1]))		
+        const {config: {guild:{factionRoles}}} = status.response[0]
+        const apikeyStatus = await getApiKey(guildId)
+        if(apikeyStatus.status == false) return interaction.reply({embeds:[defaultErrorEmbed(apikeyStatus.message)]})
 
-// 		await interaction.reply('Pong!');
-// 	},
-// };
+        const apikey = apikeyStatus.response
+        const call = await axios.get(`https://api.torn.com/user/${userId}?selections=profile&key=${apikey}`)
+        const {data} = call
+        const {name, faction: {faction_id, faction_name}} = data
+        let roleToGive = null
+
+        factionRoles.forEach(role=>{
+            if(role.factionId == faction_id) roleToGive = role.roleId
+        })
+
+        if(roleToGive == null) return interaction.reply({embeds:[defaultErrorEmbed(`No Role To Give For Faction ${faction_name} [${faction_id}]`)]})
+        else{
+            const role = await interaction.guild.roles.cache.find(role=>role.id===roleToGive)
+            if(!role) return interaction.reply({embeds:[defaultErrorEmbed(`Role Doesnt Exist For Faction ${faction_name} [${faction_id}]`)]})
+            else {
+                const members = await interaction.guild.members.fetch()
+                const selectedMember = members.find(m=>m.id===userId)
+                try{
+                    await selectedMember.roles.add(role)
+                    feilds.push({
+                        "name": `Verifed User ${name}`,
+                        "value" : `Member Of: ${faction_name} [${faction_id}]\nGiven Role ${role.name} `
+                    })
+                } catch(e){
+                    console.log(e)
+                    return interaction.reply({embeds:[defaultErrorEmbed(`Member Of: ${faction_name} [${faction_id}]\nRole To Give${role.name}\n${e}`,`Error Verifying User ${name}`)]})
+                }
+            }
+        }
+
+        embed.addFields(feilds)
+		await interaction.reply({embeds:[embed]});
+	},
+};

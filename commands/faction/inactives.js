@@ -1,12 +1,6 @@
-const {SlashCommandBuilder, EmbedBuilder} = require("discord.js")
-const axios = require("axios")
-// 	Path stuff to get configs
-const path = require('path');
-const { error } = require('console');
-const basePath = path.join(__dirname,"..","..")
-
-//  Configs
-const { apikey } = require(path.join(basePath, "config.json"))
+const {SlashCommandBuilder} = require("discord.js")
+const axios = require("axios");
+const { getApiKey, defaultEmbed, feildTemplate, defaultErrorEmbed } = require("../../helpers");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -19,25 +13,30 @@ module.exports = {
             option.setName("days").setDescription("Number Of Days To Class As Inactive")
         ),
 	async execute(interaction) {
-        const days = interaction.options.getInteger("days") || 3
+        const apikeyStatus = await getApiKey(interaction.guild.id)
+        if(!apikeyStatus.status) return interaction.reply({embeds: [defaultErrorEmbed(apikeyStatus.message)]})
+        
+        const apikey = apikeyStatus.response
         const factionId = interaction.options.getInteger("faction_id") 
+        const days = interaction.options.getInteger("days") || 3
+
         let minimum_ts = ((new Date())/1000)-(60*60*24*days)
+        
         let call = await axios.get(`https://api.torn.com/faction/${factionId}?selections=basic&key=${apikey}`)
         let data = call.data.members
-        let embed = new EmbedBuilder()
-            .setColor("Purple")
-            .setTitle(`Inactives In ${call.data.name}`)
-            .setDescription(`Inactive Threshold: ${days} Days`)
-            .setFooter({"text":`Made By Bilbosaggings[2323763]`})
-            
+
+        const embed = defaultEmbed(`Inactives In ${call.data.name}`)
+        embed.setDescription(`Inactive Threshold: ${days} Days`)
         const feilds = []
+
         Object.keys(data).forEach(id=>{
             let {name,days_in_faction,last_action,position} = data[id]
             let {timestamp,relative} = last_action
             if(timestamp > minimum_ts) return
-            const feild = {'name':`${name} [${id}]`,"value": `Days In Faction: ${days_in_faction}\nPosition In Faction: ${position}\nLast Action: ${relative}`,"inline":true}
+            const feild = feildTemplate(`${name} [${id}]`, `Days In Faction: ${days_in_faction}\nPosition In Faction: ${position}\nLast Action: ${relative}`)
             feilds.push(feild)
         })
+
         embed.addFields(feilds)
         interaction.reply({embeds:[embed]})
     },  

@@ -1,13 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const axios = require("axios")
-// 	Path stuff to get configs
-const path = require('path');
-const { error } = require('console');
-const basePath = path.join(__dirname,"..","..")
+const axios = require("axios");
+const { defaultEmbed, feildTemplate, defaultErrorEmbed, formatterCurrency, formatterQuantity } = require('../../helpers');
 
-//  Configs
-const { apikey } = require(path.join(basePath, "config.json"))
-const { formatterCurrency, formatterQuantity } = require(path.join(basePath, "helpers.js"))
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -21,14 +15,18 @@ module.exports = {
         ),
 	async execute(interaction) {
         const packLog = interaction.options.getString("pack_log")
+        
+        const apikeyStatus = await getApiKey(interaction.guild.id)
+        if(apikeyStatus.status == false) return interaction.reply({embeds:[defaultErrorEmbed(apikeyStatus.message)]})
 
-        const embed = new EmbedBuilder()
+        const apikey = apikeyStatus.response
+
+        const embed = new defaultEmbed("")
         embed.setDescription(`Log: ${packLog}`)
 
         try{
             const [ packOpened, packContentsArray ] = splitPack(packLog)
             embed.setTitle(`${packOpened}`)
-            embed.setColor("DarkPurple")
 
             const tornItems = Object.values(await getTornItems())
 
@@ -46,29 +44,20 @@ module.exports = {
             packContentsArray.sort((a,b) => b[0] - a[0]).forEach(item=>{
                 sumValue+=Number(item[3])
                 sumQuantity+=item[0]
-                const field = {
-                    "name" : item[1],
-                    "value" : `Quantity: ${formatterQuantity(item[0])}\nMarket Value: ${formatterCurrency(item[2])}\nTotal Value: ${formatterCurrency(item[3])}`,
-                    "inline" : true
-                }
-                itemFields.push(field)
+                itemFields.push(feildTemplate(item[1],`Quantity: ${formatterQuantity(item[0])}\nMarket Value: ${formatterCurrency(item[2])}\nTotal Value: ${formatterCurrency(item[3])}`))
             })
             
             if(itemFields.length < 1) throw new Error("No Item Fields")
 
             const profit = sumValue-packOpenedValue
-            const fieldPackOverview = {
-                "name" : `**__Pack Overview__**`,
-                "value" : `Items Gained: ${formatterQuantity(sumQuantity)}, Total Item Value: ${formatterCurrency(sumValue)}, Average Value: ${formatterCurrency(sumValue/sumQuantity)}\n\nPack Value: ${formatterCurrency(packOpenedValue)}, ${profit > 0 ?  `Profit: ${formatterCurrency(profit)}` : `Loss: ${formatterCurrency(profit)}`}`,
-                "inline" : false
-            }
+            const fieldPackOverview =feildTemplate(`**__Pack Overview__**`,`Items Gained: ${formatterQuantity(sumQuantity)}, Total Item Value: ${formatterCurrency(sumValue)}, Average Value: ${formatterCurrency(sumValue/sumQuantity)}\n\nPack Value: ${formatterCurrency(packOpenedValue)}, ${profit > 0 ?  `Profit: ${formatterCurrency(profit)}` : `Loss: ${formatterCurrency(profit)}`}`)
+
 
             embed.addFields([fieldPackOverview].concat(itemFields))
         } catch(e){
             console.log(e)
-            embed.setTitle("ERROR")
-            embed.setColor("Red")
-            embed.addFields({"name":"ERROR", "value" :"Bots Failed In Its Duty. He Has Brought Great Dishonour On This Family"})
+            return interaction.reply({embeds:[defaultErrorEmbed("Bots Failed In Its Duty. He Has Brought Great Dishonour On This Family")]})
+            
         }
 
         await interaction.reply({embeds: [embed]});
