@@ -17,6 +17,7 @@ module.exports = {
         try{
 
             const countryId = getCountryId(country)
+            console.log(countryId, country)
             const data = (await call())[countryId]
 
             const { update, stocks } = data
@@ -44,17 +45,18 @@ module.exports = {
         } catch(e){
             embed = defaultErrorEmbed("Unable To Fetch Foreign Items")
         }
-        await interaction.reply({embeds: [embed]})
+        interaction.reply({embeds: [embed]})
 	},
 };
 
 function getCountryId(country){
     let id = ""
-    if(country.length == 3) return country
+    if(country.length == 3) return country.toLowerCase()
     if(country.split(" ").length == 3){
-        country.split(" ").forEach(w=>id+=w[0])
+        country.split(" ").forEach(w=>id+=w[0].toLowerCase())
     }else{
         id = country.substring(0,3)
     }
-    return (id.toLowerCase())
+    id = id.toString().toLowerCase()
+    return id
 }
