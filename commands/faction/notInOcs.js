@@ -42,7 +42,7 @@ module.exports = {
         is_in_oc,
       } = member;
 
-      if (!is_in_oc) return;
+      if (is_in_oc) return;
 
       fieldsNoInOcs.push(`${name} [${id}] (${relative})`);
     });
