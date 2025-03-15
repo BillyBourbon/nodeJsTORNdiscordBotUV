@@ -12,7 +12,7 @@ const {
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('not-in-ocs')
+    .setName('not_in_ocs')
     .setDescription(
       'Shows a List of users in a faction who arent in an organised crime'
     ),
